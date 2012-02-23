@@ -1,0 +1,106 @@
+
+<html>
+	<head>
+		<title>Server Administration - IDWOS 2012</title>
+		<script type="text/javascript" src="JS/WindowManager.js">
+			</script>
+	<script type="text/javascript">
+			function resized(event) {
+			document.getElementById('sysMenu').style.top = (document.body.clientHeight-56).toString()+'px';
+			document.getElementById('sysMenuBar').style.top = document.body.clientHeight;
+			}
+			function PageLoad() {
+			document.getElementById('loadingDiv').style.display = 'none';
+			window.onresize = resized;
+			resized();
+			}
+			sys_menuopened = false;
+			function activate_icon() {
+			if(!sys_menuopened) {
+			document.getElementById('startBtn').src = 'start_active.png';
+			}
+			}
+			
+			function deactivate_icon() {
+			if(!sys_menuopened) {
+			document.getElementById('startBtn').src = 'start_inactive.png';
+			}
+			}
+			function getElementX(element) {
+			var cstr = element.style.left;
+			var cpos = cstr.substring(0,cstr.indexOf('px'));
+			return cpos*1;
+			}
+			function getElementY(element) {
+			var cstr = element.style.top;
+			var cpos = cstr.substring(0,cstr.indexOf('px'));
+			return cpos*1;
+			}
+			function setElementX(element,pos) {
+			element.style.left = pos+'px';
+			}
+			function setElementY(element,pos) {
+			element.style.top = pos+'px';
+			}
+			function getElementHeight(element) {
+			return element.clientHeight;
+			}
+			function showSysMenu() {
+			var interval = 0;
+			var cpos = getElementY(document.getElementById('sysMenuBar'));
+			var dpos = getElementHeight(document.body)-getElementHeight(document.getElementById('sysMenuBar'))-56;
+			
+			var doUpdate = function() {
+			cpos-=4;
+			setElementY(document.getElementById('sysMenuBar'),cpos);
+			if(cpos <dpos) {
+			clearInterval(interval);
+			}
+			}
+			interval = setInterval(doUpdate,10);
+			}
+			function hideSysMenu() {
+			document.getElementById('sysMenuBar').style.top = document.body.clientHeight;
+			}
+			function toggleMenu() {
+			if(!sys_menuopened) {
+			document.getElementById('startBtn').src = 'start_pressed.png';
+			showSysMenu();
+			sys_menuopened = true;
+			}else {
+			document.getElementById('startBtn').src = 'start_inactive.png';
+			sys_menuopened = false;
+			hideSysMenu();
+			}
+			}
+			function menu_mouseover(element) {
+			element.style.backgroundColor = 'Red';
+			}
+			function menu_mouseout(element) {
+			element.style.backgroundColor = 'Transparent';
+			}
+			</script>
+	</head>
+	<body onload="PageLoad()" style="background-color:Black;">
+		<script type="text/javascript">
+		function showFileBrowser() {
+		WindowManager.CreateWindow(256,256,'File browser',512,512,'<iframe style="width:100%;height:100%" allowtransparency="true" src="filebrowser.htm?sessionID={$server=sessionKey()}"></iframe>');
+			
+			}	
+		</script>
+		{$server=securePage()}
+		<div id="loadingDiv">
+		<h2>Loading....</h2>
+		</div>
+		<div id="desktop">
+			<img src="{$server=backgroundURL()}" style="width:100%;height:100%" id="backgroundImg" />
+		<div style="position:fixed;width:100%;height:56px;background-image:url('transparent.png');" id="sysMenu">
+		<img src="start_inactive.png" id="startBtn" onclick="toggleMenu()" onmouseout="deactivate_icon()" onmouseover="activate_icon()" />
+		</div>
+		<div id="sysMenuBar" style="background-image:url('transparent.png');width:250px;height:400px;color:Yellow;position:fixed;">
+		<h3 onmouseover="menu_mouseover(this);" onclick="WindowManager.CreateWindow(256,256,'Application manager',512,256,'TODO: Finish this');toggleMenu();" onmouseout="menu_mouseout(this);">Application monitor</h3>
+		<h3 onclick="showFileBrowser();toggleMenu();" onmouseover="menu_mouseover(this);" onmouseout="menu_mouseout(this);">File explorer</h3>
+		</div>
+		</div>
+	</body>
+</html>

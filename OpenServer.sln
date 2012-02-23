@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenServer", "OpenServer\OpenServer.csproj", "{BCDD1723-7FCE-4E76-861C-01E9036A5D73}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpServer", "HttpServer\HttpServer.csproj", "{A21214E6-B8D6-4216-AEE4-B691058EEA70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VMLib", "VMLib\VMLib.csproj", "{49A5E1BA-ABEF-4F78-A6FA-9D88456D76DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerConfigurationManager", "ServerConfigurationManager\ServerConfigurationManager.csproj", "{6D8EA66B-184C-417C-B4FD-D117629B2B40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DOSTester", "DOSTester\DOSTester.csproj", "{8B588282-BA5C-4082-A18A-64EEE528892E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{49A5E1BA-ABEF-4F78-A6FA-9D88456D76DB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{49A5E1BA-ABEF-4F78-A6FA-9D88456D76DB}.Debug|x86.Build.0 = Debug|Any CPU
+		{49A5E1BA-ABEF-4F78-A6FA-9D88456D76DB}.Release|x86.ActiveCfg = Release|Any CPU
+		{49A5E1BA-ABEF-4F78-A6FA-9D88456D76DB}.Release|x86.Build.0 = Release|Any CPU
+		{6D8EA66B-184C-417C-B4FD-D117629B2B40}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6D8EA66B-184C-417C-B4FD-D117629B2B40}.Debug|x86.Build.0 = Debug|Any CPU
+		{6D8EA66B-184C-417C-B4FD-D117629B2B40}.Release|x86.ActiveCfg = Release|Any CPU
+		{6D8EA66B-184C-417C-B4FD-D117629B2B40}.Release|x86.Build.0 = Release|Any CPU
+		{8B588282-BA5C-4082-A18A-64EEE528892E}.Debug|x86.ActiveCfg = Debug|x86
+		{8B588282-BA5C-4082-A18A-64EEE528892E}.Debug|x86.Build.0 = Debug|x86
+		{8B588282-BA5C-4082-A18A-64EEE528892E}.Release|x86.ActiveCfg = Release|x86
+		{8B588282-BA5C-4082-A18A-64EEE528892E}.Release|x86.Build.0 = Release|x86
+		{A21214E6-B8D6-4216-AEE4-B691058EEA70}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A21214E6-B8D6-4216-AEE4-B691058EEA70}.Debug|x86.Build.0 = Debug|Any CPU
+		{A21214E6-B8D6-4216-AEE4-B691058EEA70}.Release|x86.ActiveCfg = Release|Any CPU
+		{A21214E6-B8D6-4216-AEE4-B691058EEA70}.Release|x86.Build.0 = Release|Any CPU
+		{BCDD1723-7FCE-4E76-861C-01E9036A5D73}.Debug|x86.ActiveCfg = Debug|x86
+		{BCDD1723-7FCE-4E76-861C-01E9036A5D73}.Debug|x86.Build.0 = Debug|x86
+		{BCDD1723-7FCE-4E76-861C-01E9036A5D73}.Release|x86.ActiveCfg = Release|x86
+		{BCDD1723-7FCE-4E76-861C-01E9036A5D73}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = OpenServer\OpenServer.csproj
+	EndGlobalSection
+EndGlobal

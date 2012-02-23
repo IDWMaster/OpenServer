@@ -1,0 +1,5 @@
+D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.csprojResolveAssemblyReference.cache
+D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\HttpServer.dll
+D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\HttpServer.pdb
+D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.dll
+D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.pdb

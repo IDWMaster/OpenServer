@@ -1,0 +1,12 @@
+
+<html>
+	<head>
+		<title>File browser</title>
+	</head>
+	<body>
+		{$server=securePage()}
+		<table border="1">
+			{$server=fileList(dirpath)}
+		</table>
+	</body>
+</html>

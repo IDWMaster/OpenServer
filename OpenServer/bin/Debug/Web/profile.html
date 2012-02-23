@@ -1,0 +1,15 @@
+
+<html>
+	<head>
+		<title><$server=UserName()>'s profile</title>
+		<script type="text/javascript" src="IDWOS.js"></script>
+		<script type="text/javascript">
+		function showImgUploadDlg() {
+			IDWOS.WindowSystem.CreateWindow('File upload','blank',document.body);
+			}	
+		</script>
+	</head>
+	<body>
+		<div id="topbar" style="position:fixed;top:0px;left:0px;width:100%;height:40px;background-color:Blue;"><img src="<$server=ProfilePicture()>" style="cursor:pointer;" onclick="showImgUploadDlg()" /></div>
+	</body>
+</html>

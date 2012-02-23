@@ -1,0 +1,14 @@
+
+<html>
+	<head>
+		<title>Web Server Administration</title>
+	</head>
+	<body>
+		Please enter the Administrator Password. If you are not aware of the system password, you may reset it by typing in "reset" in the server console.
+		<form action="index.htm?sessionID={$server=sessionKey()}" method="post">
+		<input type="password" name="pswd" /><input type="submit" value="Log in" />
+			{$server=loginstatus()}
+		
+		</form>
+	</body>
+</html>

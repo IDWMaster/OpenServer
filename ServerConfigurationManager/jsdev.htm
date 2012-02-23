@@ -1,0 +1,41 @@
+
+<html>
+	<head>
+		<title>JavaScript Developer</title>
+		<script type="text/javascript">
+			currentObject = this;
+			function dokeydown(keyEventArgs) {
+			var stopKeyPropogation = false;
+			try {
+			currentObject = eval(jsCode.value);
+			if(stopKeyPropogation) {
+			keyEventArgs.preventDefault();
+			}
+			refreshDOM();
+			}catch(er) {
+			
+			}
+			}
+			function refreshDOM() {
+			var txt = '';
+			for(var inst in currentObject) {
+			txt+='<br />'+inst+':'+currentObject[inst];
+			}
+			document.getElementById('javascriptBrowser').innerHTML = txt;
+			
+			}
+		function onPageLoaded() {
+				document.getElementById('jsCode').onkeydown = dokeydown;
+			refreshDOM();
+			}	
+		</script>
+	</head>
+	<body onload="onPageLoaded()">
+	<div id="editor" style="width:512px;height:256px;">
+		<textarea style="width:100%;height:100%" id="jsCode"></textarea>
+		</div>
+		<div id="javascriptBrowser">
+		
+		</div>
+	</body>
+</html>
