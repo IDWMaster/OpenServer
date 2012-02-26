@@ -6,6 +6,7 @@ using System.Text;
 using HttpServer;
 using IC80v3;
 using System.Drawing;
+using System.Threading;
 namespace ServerConfigurationManager
 {
 
@@ -62,6 +63,131 @@ namespace ServerConfigurationManager
 		return "";
 			
 		}
+		#region Download manager
+		class Download {
+		public bool paused = false;
+			public string name;
+			public long _size;
+			public long _progress;
+			Stream _source;
+			Stream _dest;
+			public void Pause() {
+			pauseEvent.Reset();
+				paused = true;
+			}
+			public void Resume() {
+			paused = false;
+				pauseEvent.Set();
+			}
+			internal static List<Download> downloads = new List<Download>();
+			byte[] buffer = new byte[16384];
+			ManualResetEvent pauseEvent = new ManualResetEvent(false);
+			
+			void write_block() {
+				
+				if(_size-_progress>buffer.Length) {
+			int read = _source.Read(buffer,0,buffer.Length);
+					_progress+=read;
+					_dest.Write(buffer,0,read);
+				}else {
+				int read = _source.Read(buffer,0,(int)(_size-_progress));
+					_progress+=read;
+					_dest.Write(buffer,0,read);
+				
+				}
+				statusUpdateEvent.Set();
+				
+			}
+			void dowrite(object sender) {
+			while(true) {
+					if(paused) {
+				pauseEvent.WaitOne();
+				}
+					if(_size == _progress) {
+				lock(downloads) {
+					downloads.Remove(this);
+						
+					}
+					_dest.Flush();
+					_dest.Dispose();
+					return;
+					
+				}
+				write_block();
+				}
+			}
+			public Download(string _name,Stream source, Stream destination, long size) {
+			_source = source;
+				name = _name;
+				_dest = destination;
+				_size = size;
+				lock(downloads) {
+				downloads.Add(this);
+				}
+			
+			}
+			public void Begin() {
+			dowrite(null);
+			}
+			public void Abort() {
+				paused = false;
+				pauseEvent.Set();
+				_source.Close();
+				_dest.Close();
+				
+				
+			}
+		}
+		static ManualResetEvent statusUpdateEvent = new ManualResetEvent(false);
+		public string downloadTable(ClientWebRequest request) {
+			if(request.QueryString.ContainsKey("downloadFile")) {
+				Stream fstr = File.Open(request.QueryString["downloadFile"],FileMode.Open,FileAccess.Read,FileShare.ReadWrite);
+		
+				ClientHttpResponse response = new ClientHttpResponse();
+				response.StatusCode = "200 OK";
+				response.ContentType = ConfigManager.getMimeType(request.QueryString["downloadFile"]);
+				response.len = fstr.Length;
+				response.AddHeader("Content-Disposition: attachment; filename=\""+Path.GetFileName(request.QueryString["downloadFile"])+"\"");
+				
+				response.WriteHeader(request.stream);
+				request.ContinueProcessing = false;
+				try {
+				Download mload = new Download(request.QueryString["downloadFile"],fstr,request.stream,fstr.Length);
+				mload.Begin();
+				}catch(Exception er) {
+				Console.WriteLine(er);
+				}
+					
+				return "";
+			}
+			try {
+			statusUpdateEvent.WaitOne(5000);
+			statusUpdateEvent.Reset();
+			}catch(Exception) {
+			
+			}
+		StringBuilder mbuilder = new StringBuilder();
+			mbuilder.AppendLine("<table border=\"1\">");
+			mbuilder.AppendLine("<tr><td><b><u>Connection name</u></b></td><td><b><u>Progress</u></b></td><td><b><u>Actions</u></b></td></tr>");
+			try {
+			lock(Download.downloads) {
+				
+			foreach(Download et in Download.downloads) {
+					string progress = "<div style=\"width:"+((int)(((float)et._progress/(float)et._size)*100f)).ToString()+"%;background-color:Green;\">PROGRESS</div>";
+				string actions;
+					actions = "TODO";
+					
+					mbuilder.AppendLine("<tr><td>"+et.name+"</td><td style=\"background-color:Red;\">"+progress+"</td><td>"+actions+"</td></tr>");	
+				}
+				
+				mbuilder.AppendLine("</table>");
+			}
+				}catch(Exception) {
+				}
+			return mbuilder.ToString();
+		}
+#endregion
+		#region File browser
 		public string fileList(string queryStringValue,ClientWebRequest request) {
 		Dictionary<string,string> querystring = request.QueryString;
 			if(!querystring.ContainsKey(queryStringValue)) {
@@ -72,10 +198,20 @@ namespace ServerConfigurationManager
 			StringBuilder retval = new StringBuilder();
 			retval.Append("<tr><td><b><u>File name</b></u></td><td><b><u>Last modified</u></b></td></tr>");
 			foreach(string et in Directory.GetFileSystemEntries(querystring[queryStringValue])) {
-			retval.Append("<tr><td>"+Path.GetFileName(et)+"</td><td>"+Directory.GetLastWriteTime(et)+"</td></tr>");
+			retval.Append("<tr fullname=\""+et+"\" isdirectory=\""+Directory.Exists(et).ToString()+"\"><td>"+Path.GetFileName(et)+"</td><td>"+Directory.GetLastWriteTime(et)+"</td></tr>");
 			}
 			return retval.ToString();
 		}
+		public string CurrentDirectory(string queryStringValue, ClientWebRequest request) {
+		Dictionary<string,string> querystring = request.QueryString;
+			if(!querystring.ContainsKey(queryStringValue)) {
+			
+				querystring.Add(queryStringValue,Path.GetPathRoot(Environment.CurrentDirectory));
+			
+			}
+			return querystring[queryStringValue];
+		}
+		#endregion
 		public string sessionKey(ClientWebRequest request)
         {
             if (!request.QueryString.ContainsKey("sessionID"))

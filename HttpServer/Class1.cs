@@ -29,7 +29,8 @@ namespace HttpServer
         /// <summary>
         /// The type of the content (Content-Type header).
         /// </summary>
-        public string ContentType;
+        
+		public string ContentType;
         /// <summary>
         /// Writes the HTML header.
         /// </summary>
@@ -52,6 +53,9 @@ namespace HttpServer
             mwriter.Flush();
 
         }
+		public void AddHeader(string header) {
+			AdditionalHeaders.Add(header);
+		}
 		List<string> AdditionalHeaders = new List<string>();
 		/// <summary>
 		/// Redirect the user to the specified location.
@@ -127,6 +131,10 @@ namespace HttpServer
             headers = hed;
             stream = str;
         }
+		public void SetUnmanagedConnection() {
+		UnmanagedConnection = true;
+		}
+		public bool UnmanagedConnection = false;
 		public bool ContinueProcessing = true;
 		Dictionary<string,string> cachedQueryString = null;
         public Dictionary<string, string> QueryString
@@ -144,7 +152,7 @@ namespace HttpServer
                         mdict.Add(et.Replace("?", "").Substring(0, et.Replace("?", "").IndexOf("=")), Uri.UnescapeDataString(et.Replace("?", "").Substring(et.Replace("?", "").IndexOf("=") + 1)));
 
                     }
-                    }
+					}
 					cachedQueryString = mdict;
                 return cachedQueryString;
 				}else {

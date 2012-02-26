@@ -1,12 +1,6 @@
-
-<html>
-	<head>
-		<title>File browser</title>
-	</head>
-	<body>
 		{$server=securePage()}
-		<table border="1">
+<div style="width:100%;height:100%;overflow:auto;">
+		<table border="1" inst_id="filelist">
 			{$server=fileList(dirpath)}
 		</table>
-	</body>
-</html>
+</div>

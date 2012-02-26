@@ -8,12 +8,24 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 namespace ServerConfigurationManager
 {
+	
 	public class ConfigManager
 	{
+		public static string getMimeType(string filename) {
+			string mimetype;
+				string str = filename.Substring(filename.LastIndexOf("."));
+				if(engine.mimetypes.ContainsKey(str)) {
+				mimetype = engine.mimetypes[str];
+				}else {
+				mimetype = "application/octet-stream";
+				}
+			return mimetype;
+		}
 		RequestHelpers reqManager = new RequestHelpers();
 		byte[] bitmapData = null;
 		byte[] transparentBitmap = null;
 		public void onRequest(ClientWebRequest request) {
+			try {
 			if(request.UnsanitizedRelativeURI.Contains("transparent.png")) {
 			if(transparentBitmap == null) {
 				Bitmap mmap = new Bitmap(4,4);
@@ -93,6 +105,8 @@ namespace ServerConfigurationManager
 							response.StatusCode = "200 OK";
 							response.WriteHeader(request.stream);
 							response.WriteStream(mstream,request.stream,16384);
+						}else {
+						return;
 						}
 					}else {
 			
@@ -115,9 +129,12 @@ namespace ServerConfigurationManager
 				request.stream.Flush();
 				
 			}
+			}catch(Exception er) {
+			Console.WriteLine(er);
+			}
 		}
 		byte[] notfoundpage;
-		VMExecutionEngine engine;
+		static VMExecutionEngine engine;
 		public ConfigManager (VMExecutionEngine _engine)
 		{
 			engine = _engine;

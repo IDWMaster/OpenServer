@@ -1,5 +1,9 @@
+
+
+
 //IT'S OVER 9000!
 max_z_index = 9001;
+
 WindowManager = {
 
 CreateWindow:function(x, y, title, width, height, html) {
@@ -12,6 +16,12 @@ newwindow.appendChild(titlebar);
 titlebar.innerHTML = title;
 titlebar.style.backgroundColor = 'Grey';
 newwindow.style.width = width+'px';
+var xbtn = document.createElement('button');
+xbtn.innerHTML = 'X';
+xbtn.style.position = 'absolute';
+xbtn.style.right = '0px';
+titlebar.appendChild(xbtn);
+
 var content = document.createElement('div');
 content.style.backgroundImage = 'url(\'transparent.png\')';
 content.style.width = width+'px';
@@ -27,12 +37,7 @@ newwindow.style.zIndex = max_z_index+50;
 max_z_index+=50;
 prevpos = e;
 ismousedown = true;
-}
-titlebar.onmouseup = function(e) {
-ismousedown = false;
-}
-var prev = true;
-titlebar.onmousemove = function(e) {
+document.body.onmousemove = function(e) {
 if(ismousedown) {
 if(prev) {
 
@@ -47,5 +52,60 @@ prev = true;
 }
 }
 }
+}
+titlebar.onmouseup = function(e) {
+ismousedown = false;
+document.body.onmousemove = null;
+}
+var prev = true;
+var sysmen = document.getElementById('sysMenu');
+var menuElement = document.createElement('span');
+menuElement.innerHTML = title;
+menuElement.style.borderStyle = 'solid';
+menuElement.style.borderColor = 'Yellow';
+var visible = true;
+menuElement.onclick = function(e) {
+if(visible) {
+visible = false;
+newwindow.style.display = 'none';
+}else {
+visible = true;
+newwindow.style.display = '';
+newwindow.style.zIndex = max_z_index+50;
+max_z_index+=50;
+}
+}
+sysmen.appendChild(menuElement);
+
+var retval = {
+Close: function() {
+sysmen.removeChild(menuElement);
+document.body.removeChild(newwindow);
+
+},
+set_title: function(atitle) {
+title = atitle;
+titlebar.removeChild(xbtn);
+titlebar.innerHTML = atitle;
+titlebar.appendChild(xbtn);
+menuElement.innerHTML = atitle;
+},
+get_title:function() {
+return title;
+},
+GetApplicationContent:function() {
+return content.children[0];
+},
+onCloseRequested:function() {
+return true;
+}
+}
+xbtn.onclick = function(e) {
+if(retval.onCloseRequested()) {
+retval.Close();
+}
+}
+return retval;
+
 }
 }

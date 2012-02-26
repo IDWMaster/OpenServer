@@ -40,6 +40,7 @@ namespace OpenServer
             }
             catch (Exception er)
             {
+				
                 MemoryStream errstream = new MemoryStream();
                 StreamWriter mwriter = new StreamWriter(errstream);
                 mwriter.Write("<html><head><title>An error has occured</title></head><body><pre><h2>Whoops! We've had a 500 Internal Server Error! To the embarassment of the developer, the full error is shown below</h2><hr />"+er.ToString()+"</pre></body></html>");

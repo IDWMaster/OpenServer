@@ -68,6 +68,10 @@ namespace VMLib
 				if(instances.ContainsKey(appname)) {
 				try {
 				    instances[appname].ntfyRequest(request);
+					if(request.UnmanagedConnection) {
+						Console.WriteLine("Unmanaged connection found");
+					return;
+					}
 				}catch(RemotingException er) {
 				Console.WriteLine("Remoting instance for "+appname+" has died. Respawning application....");
 					lock(instances) {
