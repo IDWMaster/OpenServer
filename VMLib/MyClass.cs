@@ -34,6 +34,16 @@ namespace VMLib
             mimetypes.Add(".mp4", "video/mp4");
             mimetypes.Add(".ogg", "audio/ogg");
             mimetypes.Add(".ogv", "video/ogg");
+			if(!File.Exists("homepage.txt")) {
+			StreamWriter mwriter = new StreamWriter("homepage.txt");
+				mwriter.WriteLine("ServerConfigurationManager/index.htm");
+				mwriter.Flush();
+				mwriter.Close();
+		
+			}
+			StreamReader mreader = new StreamReader("homepage.txt");
+			startupApplication = mreader.ReadLine();
+			mreader.Close();
 			System.Threading.Thread mtthread = new System.Threading.Thread(inputtar);
 			mtthread.Start();
 		}
@@ -62,8 +72,11 @@ namespace VMLib
 				}
 				appname = request.UnsanitizedRelativeURI.Substring(request.UnsanitizedRelativeURI.IndexOf("/")+1,el);
 				}else {
-					appname = "home";
-				}
+			ClientHttpResponse response = new ClientHttpResponse();
+				response.Redirect(startupApplication,true,request.stream);
+				request.ContinueProcessing = false;
+				return;
+			}
 				doRequest:
 				if(instances.ContainsKey(appname)) {
 				try {
@@ -130,6 +143,33 @@ namespace VMLib
 			
 				request.stream.Dispose();
 			
+		}
+		public string[] GetApplications() {
+		lock(instances) {
+				string[] apps = new string[instances.Count];
+			int i = 0;
+				foreach(KeyValuePair<string,VMInstance> et in instances) {
+				apps[i] = et.Key;
+					i++;
+				}
+				return apps;
+			}
+		}
+		public void TerminateApplication(string name) {
+		lock(instances) {
+			instances.Remove(name);
+				AppDomain.Unload(domains[name]);
+				domains.Remove(name);
+			}
+		}
+		string startupApplication;
+		public void setStartup(string name) {
+		StreamWriter mwriter = new StreamWriter("homepage.txt");
+			mwriter.BaseStream.SetLength(0);
+			mwriter.WriteLine(name);
+			mwriter.Flush();
+			mwriter.Close();
+			startupApplication = name;
 		}
 		public void LoadApplication(byte[] assembly, string appName) {
 		AppDomain md = AppDomain.CreateDomain(appName);

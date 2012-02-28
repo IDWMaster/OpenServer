@@ -1,3 +1,14 @@
+/*CONCERT ORDER:
+ * Retribution
+Black Sun Rising
+Secrets
+Omega
+How it ends (cellos need more of these)
+You're my demon
+Cosmic wager (whole class needs more of these)
+Arise
+ * */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,17 +85,19 @@ namespace ServerConfigurationManager
 			public void Pause() {
 			pauseEvent.Reset();
 				paused = true;
+				statusUpdateEvent.Set();
 			}
 			public void Resume() {
 			paused = false;
 				pauseEvent.Set();
+				statusUpdateEvent.Set();
 			}
 			internal static List<Download> downloads = new List<Download>();
 			byte[] buffer = new byte[16384];
 			ManualResetEvent pauseEvent = new ManualResetEvent(false);
 			
 			void write_block() {
-				
+				try {
 				if(_size-_progress>buffer.Length) {
 			int read = _source.Read(buffer,0,buffer.Length);
 					_progress+=read;
@@ -96,8 +109,13 @@ namespace ServerConfigurationManager
 				
 				}
 				statusUpdateEvent.Set();
-				
+				}catch(Exception er) {
+				haserror = true;
+					statusUpdateEvent.Set();
+					throw er;
+				}
 			}
+			public bool haserror = false;
 			void dowrite(object sender) {
 			while(true) {
 					if(paused) {
@@ -132,14 +150,36 @@ namespace ServerConfigurationManager
 			public void Abort() {
 				paused = false;
 				pauseEvent.Set();
-				_source.Close();
-				_dest.Close();
-				
+				downloads.Remove(this);
+				try {
+				_source.Dispose();
+				}catch(Exception) {
+				}
+				try {
+				_dest.Dispose();
+				}catch(Exception) {
+				}
+				statusUpdateEvent.Set();
 				
 			}
 		}
 		static ManualResetEvent statusUpdateEvent = new ManualResetEvent(false);
 		public string downloadTable(ClientWebRequest request) {
+			if(request.QueryString.ContainsKey("action")) {
+			if(request.QueryString["action"] == "pause") {
+				Download.downloads[Convert.ToInt32(request.QueryString["inst"])].Pause();
+					
+				}
+				if(request.QueryString["action"] == "resume") {
+				Download.downloads[Convert.ToInt32(request.QueryString["inst"])].Resume();
+					
+				}
+				if(request.QueryString["action"] == "abort") {
+				Download.downloads[Convert.ToInt32(request.QueryString["inst"])].Abort();
+				
+				}
+				return "";
+			}
 			if(request.QueryString.ContainsKey("downloadFile")) {
 				Stream fstr = File.Open(request.QueryString["downloadFile"],FileMode.Open,FileAccess.Read,FileShare.ReadWrite);
 		
@@ -152,10 +192,11 @@ namespace ServerConfigurationManager
 				response.WriteHeader(request.stream);
 				request.ContinueProcessing = false;
 				try {
+					
 				Download mload = new Download(request.QueryString["downloadFile"],fstr,request.stream,fstr.Length);
 				mload.Begin();
 				}catch(Exception er) {
-				Console.WriteLine(er);
+				
 				}
 					
 				return "";
@@ -167,24 +208,54 @@ namespace ServerConfigurationManager
 			
 			}
 		StringBuilder mbuilder = new StringBuilder();
-			mbuilder.AppendLine("<table border=\"1\">");
-			mbuilder.AppendLine("<tr><td><b><u>Connection name</u></b></td><td><b><u>Progress</u></b></td><td><b><u>Actions</u></b></td></tr>");
+			mbuilder.AppendLine("<table border=\"1\" inst_id=\"maintable\">");
+			mbuilder.AppendLine("<tr><td><b><u>Connection name</u></b></td><td><b><u>Progress</u></b></td><td><b><u>Status</u></b></td></tr>");
 			try {
+				int i = 0;
 			lock(Download.downloads) {
 				
 			foreach(Download et in Download.downloads) {
 					string progress = "<div style=\"width:"+((int)(((float)et._progress/(float)et._size)*100f)).ToString()+"%;background-color:Green;\">PROGRESS</div>";
-				string actions;
-					actions = "TODO";
+				string actions = "";
+						if(et.paused) {
+						actions = "PAUSED";
+						}else {
+						actions = "IN PROGRESS";
+						}
+						if(et.haserror) {
+					actions = "ERROR";
+						}
 					
-					mbuilder.AppendLine("<tr><td>"+et.name+"</td><td style=\"background-color:Red;\">"+progress+"</td><td>"+actions+"</td></tr>");	
-				}
+					mbuilder.AppendLine("<tr dlID=\""+i.ToString()+"\"><td>"+et.name+"</td><td style=\"background-color:Red;\">"+progress+"</td><td inst_id=\"status\">"+actions+"</td></tr>");	
+				i++;
+					}
 				
 				mbuilder.AppendLine("</table>");
 			}
 				}catch(Exception) {
 				}
 			return mbuilder.ToString();
+		}
+#endregion
+		#region Application manager
+		public string applicationManager(ClientWebRequest request) {
+		if(request.QueryString.ContainsKey("action")) {
+				if(request.QueryString["action"] == "terminate") {
+			ConfigManager.TerminateApplication(request.QueryString["id"]);
+				}
+				if(request.QueryString["action"] == "startup") {
+				ConfigManager.setStartup(request.QueryString["id"]);
+				}
+			}
+			StringBuilder mbuilder = new StringBuilder();
+		mbuilder.AppendLine("<h2>Web applications</h2><hr />");
+		mbuilder.AppendLine("<table border=\"1\" inst_id=\"maintable\">");
+		foreach(string et in ConfigManager.GetApplications()) {
+			mbuilder.AppendLine("<tr><td inst_id=\"appname\">"+et+"</td></tr>");
+			}
+		mbuilder.AppendLine("</table>");
+			return mbuilder.ToString();
+			
 		}
 #endregion
 		#region File browser

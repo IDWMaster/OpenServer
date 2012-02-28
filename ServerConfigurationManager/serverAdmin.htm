@@ -149,6 +149,16 @@
 			});
 			});
 			}	
+			function showApplicationManager() {
+			var divid = Math.random().toString();
+		var hwnd = WindowManager.CreateWindow(256,256,'Application manager',512,512,'<div id="'+divid+'">Loading content....</div>');
+			
+			network.GetResource('applicationManager.js?sessionID={$server=sessionKey()}',function(script) {
+			eval(script);
+			initApplication(hwnd);
+			});
+		
+			}
 			function showDownloadManager() {
 			var divid = Math.random().toString();
 		var hwnd = WindowManager.CreateWindow(256,256,'Download manager',512,512,'<div id="'+divid+'">Loading content....</div>');
@@ -170,7 +180,7 @@
 		<img src="start_inactive.png" id="startBtn" onclick="toggleMenu()" onmouseout="deactivate_icon()" onmouseover="activate_icon()" />
 		</div>
 		<div id="sysMenuBar" style="background-image:url('transparent.png');width:250px;height:400px;color:Yellow;position:fixed;">
-		<h3 onmouseover="menu_mouseover(this);" onclick="WindowManager.CreateWindow(256,256,'Application manager',512,256,'TODO: Finish this');toggleMenu();" onmouseout="menu_mouseout(this);">Application monitor</h3>
+		<h3 onmouseover="menu_mouseover(this);" onclick="showApplicationManager();toggleMenu();" onmouseout="menu_mouseout(this);">Application monitor</h3>
 		<h3 onclick="showFileBrowser();toggleMenu();" onmouseover="menu_mouseover(this);" onmouseout="menu_mouseout(this);">File explorer</h3>
 		<h3 onclick="showDownloadManager();toggleMenu();" onmouseover="menu_mouseover(this);" onmouseout="menu_mouseout(this);">Download manager</h3>
 		

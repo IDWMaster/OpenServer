@@ -135,6 +135,15 @@ namespace ServerConfigurationManager
 		}
 		byte[] notfoundpage;
 		static VMExecutionEngine engine;
+		public static string[] GetApplications() {
+		return engine.GetApplications();
+		}
+		public static void TerminateApplication(string name) {
+		engine.TerminateApplication(name);
+		}
+		public static void setStartup(string name) {
+		engine.setStartup(name);
+		}
 		public ConfigManager (VMExecutionEngine _engine)
 		{
 			engine = _engine;
@@ -152,6 +161,7 @@ namespace ServerConfigurationManager
 			mstream.Position = 0;
 			notfoundpage = new byte[mstream.Length];
 			mstream.Read(notfoundpage,0,notfoundpage.Length);
+		
 		}
 		
 	}
