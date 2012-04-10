@@ -1,0 +1,7 @@
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\bin\Debug\IC80FSTester.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\bin\Debug\IC80FSTester.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\bin\Debug\HttpServer.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\bin\Debug\HttpServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\obj\x86\Debug\IC80FSTester.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\obj\x86\Debug\IC80FSTester.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\IC80FSTester\obj\x86\Debug\IC80FSTester.pdb

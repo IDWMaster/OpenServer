@@ -1,0 +1,5 @@
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\OpenNetProvider\OpenNetProvider.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\OpenNetProvider\OpenNetProvider.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenNetProvider\obj\Debug\OpenNetProvider.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenNetProvider\obj\Debug\OpenNetProvider.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenNetProvider\obj\Debug\OpenNetProvider.pdb

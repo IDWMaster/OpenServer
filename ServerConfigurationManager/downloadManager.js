@@ -1,3 +1,5 @@
+
+
 function initApplication(instance) {
 var content = instance.GetApplicationContent();
 var downloadComplete = function(response) {

@@ -33,10 +33,17 @@ namespace IC80v3
 		{
 			throw new NotImplementedException ();
 		}
-
+        protected override void Dispose(bool disposing)
+        {
+            msys.CloseFile(filehandle);
+            base.Dispose(disposing);
+        }
 		public override void SetLength (long value)
 		{
 			if(value>Length) {
+				if(value-Length == 0) {
+				Console.WriteLine("WARN:NOCHANGE");
+				}
 				msys.AllocSpace(filename,value-Length);
 			}else {
 			throw new NotSupportedException ("Shrinking a file is not supported on the IC80FS. Please consider deleting, and over-writing the file instead.");
@@ -45,6 +52,7 @@ namespace IC80v3
 
 		public override int Read (byte[] buffer, int offset, int count)
 		{
+            
 			byte[] dgram;
 			int data2read = count;
 			int dataread = 0;
@@ -52,6 +60,7 @@ namespace IC80v3
                 //TODO: Something's wrong here......
 			dgram = msys.ReadBlock(filehandle,data2read);
 			data2read-=dgram.Length;
+            
 				
 				Buffer.BlockCopy(dgram,0,buffer,offset+dataread,dgram.Length);
 				dataread+=dgram.Length;
@@ -68,7 +77,12 @@ namespace IC80v3
 		{
 			if(Length-Position<count) {
 			//Increase stream size
-				SetLength(count+16384+Length);
+				
+				msys.AllocSpace(filename,(count-(Length-Position))+msys._seglen);
+				
+			}
+			if(Length-Position<count) {
+			throw new Exception("Whut?");
 			}
 			msys.WriteBlock(filehandle,buffer,offset,count);
 			cpos+=count;
@@ -103,24 +117,13 @@ namespace IC80v3
 				return cpos;
 			}
 			set {
-				if(value>Length) {
-				SetLength(value);
-				}
-				if(value<cpos) {
-				msys.CloseFile(filehandle);
-					filehandle = msys.OpenFile(filename);
-					cpos = 0;
-				}
-				byte[] buffer = new byte[16384];
-				while(cpos<value) {
-					long ava;
-					if(value-cpos>16384) {
-					ava = 16384;
-					}else {
-					ava = value-cpos;
-					}
-				Read (buffer,0,(int)ava);
-				}
+
+                if(value>Length) {
+                SetLength(value);
+                }
+                msys.Seek(filehandle, value);
+                cpos = value;
+               
 			}
 		}
 		#endregion
@@ -138,6 +141,7 @@ namespace IC80v3
                 SeekableCryptoStream mstream = fstream as SeekableCryptoStream;
                 if (mstream == null)
                 {
+					
                     return 0;
                 }
                 else
@@ -176,12 +180,16 @@ namespace IC80v3
 				
 			}
 			public static long GetSize() {
-			return sizeof(long)+sizeof(long)+1;
+			return sizeof(long)+sizeof(long)+sizeof(bool);
 			}
 		}
-		public void Commit() {
+
+      
+        public void Commit()
+        {
 			BinaryWriter mwriter = new BinaryWriter(fstream);
 		foreach(KeyValuePair<long,List<IC80Fragment>> et in fragments) {
+           
 			foreach(IC80Fragment ett in et.Value) {
 				if(ett.haschanged) {
 					ett.haschanged = false;
@@ -201,14 +209,32 @@ namespace IC80v3
 				return total;
 			}
 		}
+		/// <summary>
+		/// Commit the file if safety is enabled
+		/// </summary>
+		void commit() {
+			Commit();
+		}
+		public Dictionary<long,List<long>> handleMappings = new Dictionary<long, List<long>>();
 		public void DeleteFile(long filename) {
-		foreach(IC80Fragment et in fragments[filename]) {
+			if(handleMappings.ContainsKey(filename)) {
+				
+				foreach(long et in handleMappings[filename]) {
+					fileHandles.Remove(et);
+					}
+				handleMappings.Remove(filename);
+				
+		Console.WriteLine("WARNING: Deleted file with open handles");
+			}
+			foreach(IC80Fragment et in fragments[filename]) {
 			et.name = -1;
+				
 				et.haschanged = true;
 				
 			}
 			fragments[-1].AddRange(fragments[filename]);
 			fragments.Remove(filename);
+			commit();
 		}
         public bool HasFile(long filename)
         {
@@ -217,6 +243,17 @@ namespace IC80v3
                 return fragments.ContainsKey(filename);
             }
         }
+		IC80Fragment GetAdjacentFragment(IC80Fragment src) {
+		
+			foreach(KeyValuePair<long,List<IC80Fragment>> et in fragments) {
+			foreach(IC80Fragment ett in et.Value) {
+				if(ett.FragmentPosition >= src.FragmentPosition+src.size+IC80Fragment.GetSize()) {
+					return ett;
+					}
+				}
+			}
+			return null;
+		}
 		Dictionary<long,List<IC80Fragment>> fragments = new Dictionary<long, List<IC80Fragment>>();
 		/// <summary>
 		/// Allocs a contiguous region of free space
@@ -228,41 +265,112 @@ namespace IC80v3
 		/// Length to allocate (in bytes)
 		/// </param>
 		public void AllocSpace(long file,long len) {
+		
+		
 		if(!fragments.ContainsKey(file)) {
 			fragments.Add(file,new List<IC80Fragment>());
 			}
             lock(fragments[-1]) {
+				
+                if (fragments[file].Count > 0)
+                {
+                    IC80Fragment endfrag = null;
+					long maxpos = -8;
+					foreach(IC80Fragment et in fragments[file]) {
+					if(et.FragmentPosition>maxpos) {
+						maxpos = et.FragmentPosition;
+							endfrag = et;
+						}
+					}
+                    long lastfrag_end = endfrag.FragmentPosition + endfrag.size + IC80Fragment.GetSize();
+                    foreach (IC80Fragment et in fragments[-1])
+                    {
+                    //TODO: This has been disabled for testing purposes
+								break;
+						bool foundbug = false;
+                        if (et.FragmentPosition == lastfrag_end && et.size>len)
+                        {
+							
+                            //Resize existing fragment, without creating a new one
+							foreach(KeyValuePair<long,List<IC80Fragment>> fraglist in fragments) {
+								
+							foreach(IC80Fragment frag in fraglist.Value) {
+								if(frag !=et) {
+									if(et.FragmentPosition+len>=frag.FragmentPosition && et.size+et.FragmentPosition+len<=frag.size+frag.FragmentPosition+IC80Fragment.GetSize()) {
+									
+											foundbug = true;
+											break;
+									}
+								}
+								}
+								if(foundbug) {
+								break;
+								}
+							}
+							if(foundbug) {
+							break;
+							}
+                            et.FragmentPosition += len;
+                            et.size -= len;
+                            endfrag.size += len;
+                            endfrag.haschanged = true;
+                            et.haschanged = true;
+							commit();
+                            return;
+                        }
+                    }
+                }
                 foreach (IC80Fragment et in fragments[-1])
                 {
-                    if (et.size > len + IC80Fragment.GetSize())
+                    if (et.size > len + IC80Fragment.GetSize()+IC80Fragment.GetSize())
                     {
+						//Mark free space as being occupied by Wall Street
                         fragments[-1].Remove(et);
                         et.name = file;
                         et.haschanged = true;
-                        et.hasNextFile = true;
+						//Create new free democracy
                         IC80Fragment freefrag = new IC80Fragment();
                         freefrag.name = -1;
                         freefrag.haschanged = true;
-
+						
                         //Compute fragment position. Immediately after this file
                         freefrag.FragmentPosition = len + et.FragmentPosition + IC80Fragment.GetSize();
-                        freefrag.size = et.size - len;
-
+                        //We use some free space for our file fragment, and also free space is used for the free space segment
+						//itself.
+						freefrag.size = et.size - len-IC80Fragment.GetSize();
+						et.hasNextFile = true;
+						IC80Fragment adjfrag = GetAdjacentFragment(freefrag);
+						if(adjfrag !=null) {
+							freefrag.hasNextFile = true;
+						}
 
                         et.size = len;
-
+						
                         fragments[file].Add(et);
-                        Console.WriteLine("File " + file.ToString() + " has " + fragments[file].Count.ToString() + " fragments");
-
+                        
                         fragments[-1].Add(freefrag);
+                     if(GetAdjacentFragment(et) == null) {
+						throw new Exception("Well here's your problem!");
+						}
                         break;
                     }
                 }
 			}
+			commit();
+			
+			
 		}
+		
 		public long GetLen(long fileHandle) {
+			lock(fileHandles) {
+				if(!fileHandles.ContainsKey(fileHandle)) {
+				throw new Exception("Invalid handle");
+				}
 		return fileHandles[fileHandle].GetLen();
+			}
 		}
+		long currentHandle = 0;
+		object handleSync  = new object();
 		/// <summary>
 		/// Opens the specified file.
 		/// </summary>
@@ -273,32 +381,34 @@ namespace IC80v3
 		/// The file name to open
 		/// </param>
 		public long OpenFile(long fileID) {
-		SegmentReader mreader = new SegmentReader(fstream,fragments[fileID]);
+		SegmentReader mreader = new SegmentReader(fstream,fragments[fileID],fileID);
         long keyval = 0;
         lock (fileHandles)
         {
-            if (fileHandles.ContainsKey(fileHandles.Count))
-            {
-                keyval = fileHandles.Count + 1;
                 while (fileHandles.ContainsKey(keyval))
                 {
                     keyval++;
                 }
                 fileHandles.Add(keyval, mreader);
-            }
-            else
-            {
-                keyval = fileHandles.Count;
-                fileHandles.Add(fileHandles.Count, mreader);
-                
-            }
-            }
+            
+            
+				if(!handleMappings.ContainsKey(fileID)) {
+				handleMappings.Add(fileID,new List<long>());
+				}
+				handleMappings[fileID].Add(keyval);
+				
 			return keyval;
+            }
 		}
 		public void CloseFile(long fileHandle) {
             lock (fileHandles)
             {
+               handleMappings[fileHandles[fileHandle]._fileid].Remove(fileHandle);
+				if(handleMappings[fileHandles[fileHandle]._fileid].Count == 0) {
+				handleMappings.Remove(fileHandles[fileHandle]._fileid);
+				}
                 fileHandles.Remove(fileHandle);
+                
             }
 		}
 		public void WriteBlock(long fileHandle,byte[] data,int _offset, int count) {
@@ -324,6 +434,10 @@ namespace IC80v3
 		return fileHandles[fileHandle].ReadBlock(count);
 			
 		}
+        public void Seek(long filehandle, long position)
+        {
+            fileHandles[filehandle].seek(position);
+        }
 		public IEnumerable<long> EnumFiles() {
 		List<long> retval = new List<long>();
 			foreach(KeyValuePair<long,List<IC80Fragment>> et in fragments) {
@@ -332,9 +446,12 @@ namespace IC80v3
 				}
 			}
 		}
+		internal int _seglen;
         public Filesystem(Stream basestream, string pswd, int seglen, long partitionLen)
         {
+			_seglen = seglen;
             bool empty = basestream.Length <16389;
+			
             Stream mstream = SeekableCryptoStream.CreateUltraSecureStream(pswd,seglen, basestream);
             fstream = mstream;
             if (empty)
@@ -350,6 +467,62 @@ namespace IC80v3
 
                 IC80Fragment lament = new IC80Fragment();
                 lament.name = -1;
+                lament.size = partitionLen;
+                lament.FragmentPosition = cpos;
+                fragments[-1].Add(lament);
+                mwriter.Flush();
+
+            }
+            else
+            {
+
+                BinaryReader mreader = new BinaryReader(fstream);
+				string xt = mreader.ReadString();
+                if (xt != "IC80v3")
+                {
+                    throw new Exception("This library only supports IC80 version 3 file systems.");
+                }
+                while (true)
+                {
+                    IC80Fragment mf = new IC80Fragment();
+                    mf.Read(mreader);
+
+                    if (!fragments.ContainsKey(mf.name))
+                    {
+                        fragments.Add(mf.name, new List<IC80Fragment>());
+                    }
+                    fragments[mf.name].Add(mf);
+
+                    if (!mf.hasNextFile)
+                    {
+                        break;
+                    }else {
+					fstream.Position +=mf.size;
+					}
+                }
+            }
+			FreeSpace.ToString();
+        }
+			
+            public Filesystem (Stream basestream, int seglen, long partitionLen)
+            {
+		 bool empty = basestream.Length <16389;
+		
+            fstream = basestream;
+            if (empty)
+            {
+
+                BinaryWriter mwriter = new BinaryWriter(fstream);
+                mwriter.Write("IC80v3");
+                long cpos = fstream.Position;
+                mwriter.Write(new char[256]);
+                mwriter.Write(partitionLen);
+                mwriter.Write(false);
+                fragments.Add(-1, new List<IC80Fragment>());
+
+                IC80Fragment lament = new IC80Fragment();
+                lament.hasNextFile = false;
+				lament.name = -1;
                 lament.size = partitionLen;
                 lament.FragmentPosition = cpos;
                 fragments[-1].Add(lament);
@@ -378,63 +551,22 @@ namespace IC80v3
                     if (!mf.hasNextFile)
                     {
                         break;
-                    }
-                    fstream.Position += mf.size;
+                    }else {
+					fstream.Position += mf.size;
+					}
+					
                 }
             }
+			FreeSpace.ToString();
         }
-			
-            public Filesystem (Stream basestream, int seglen, long partitionLen)
-            {
-			bool empty = basestream.Length < 16389;
-            
-			fstream = basestream;
-			if(empty) {
-			
-				BinaryWriter mwriter = new BinaryWriter(fstream);
-				mwriter.Write("IC80v3");
-				long cpos = fstream.Position;
-				mwriter.Write(new char[256]);
-				mwriter.Write(partitionLen);
-				mwriter.Write(false);
-				fragments.Add(-1,new List<IC80Fragment>());
-				
-				IC80Fragment lament = new IC80Fragment();
-				lament.name = -1;
-				lament.size = partitionLen;
-				lament.FragmentPosition = cpos;
-				fragments[-1].Add(lament);
-                mwriter.Flush();
-				
-			}else {
-				
-				BinaryReader mreader = new BinaryReader(fstream);
-				if(mreader.ReadString() != "IC80v3") {
-				throw new Exception("This library only supports IC80 version 3 file systems.");
-				}
-			    while(true) {
-				IC80Fragment mf = new IC80Fragment();
-					mf.Read(mreader);
-					
-					if(!fragments.ContainsKey(mf.name)) {
-					fragments.Add(mf.name,new List<IC80Fragment>());
-					}
-					fragments[mf.name].Add(mf);
-					
-					if(!mf.hasNextFile) {
-					break;
-					}
-					fstream.Position+=mf.size;
-				}
-			}
-			
-		}
 		
 	class SegmentReader {
-	public SegmentReader(Stream _basestream, List<IC80Fragment> _fragments) {
+        internal long _fileid;
+	public SegmentReader(Stream _basestream, List<IC80Fragment> _fragments, long fileID) {
 				fragments = _fragments;
 				basestream = _basestream;
-			}
+                _fileid = fileID;		
+    }
 			Stream basestream;
 			List<IC80Fragment> fragments;
             
@@ -479,6 +611,27 @@ namespace IC80v3
 				}
 				
 			}
+            public void seek(long position)
+            {
+                long dpos = position;
+                long cpos = 0;
+                blockOffset = 0;
+				segoffset = 0;
+                while (dpos != cpos)
+                {
+                    if (fragments[blockOffset].size + cpos < dpos)
+                    {
+                        cpos += fragments[blockOffset].size;
+                        blockOffset++;
+                    }
+                    else
+                    {
+                        segoffset = dpos - cpos;
+                        cpos = dpos;
+                    }
+                    
+                }
+            }
 			/// <summary>
 			/// Writes the block.
 			/// </summary>
@@ -520,6 +673,7 @@ namespace IC80v3
 
     public void Dispose()
     {
+		this.fstream.Flush();
         this.fstream.Close();
     }
     }

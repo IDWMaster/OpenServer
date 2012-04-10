@@ -1,0 +1,7 @@
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\bin\Debug\VMLib.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\bin\Debug\VMLib.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\bin\Debug\HttpServer.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\bin\Debug\HttpServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\obj\Debug\VMLib.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\obj\Debug\VMLib.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\VMLib\obj\Debug\VMLib.pdb

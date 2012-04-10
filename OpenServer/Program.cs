@@ -19,7 +19,7 @@ namespace OpenServer
         {
 			engine = new VMExecutionEngine();
 			
-            HttpListener mlist = new HttpListener(82);
+            HttpListener mlist = new HttpListener(80);
             mlist.onClientConnect += new HttpListener.ConnectEventDgate(mlist_onClientConnect);
             mimemappings.Add(".htm", "text/html");
             mimemappings.Add(".jpg", "image/jpeg");
@@ -29,6 +29,7 @@ namespace OpenServer
             mimemappings.Add(".mp4", "video/mp4");
             mimemappings.Add(".ogg", "audio/ogg");
             mimemappings.Add(".ogv", "video/ogg");
+			mimemappings.Add(".swf","application/x-shockwave-flash");
 
         }
         static RequestHelpers helpers = new RequestHelpers();

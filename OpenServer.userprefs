@@ -1,11 +1,33 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ServerConfigurationManager\RequestHelpers.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="OpenNetTestProgram\OpenNetProtocolDriver.cs">
     <Files>
-      <File FileName="ServerConfigurationManager\applicationManager.js" Line="16" Column="2" />
-      <File FileName="ServerConfigurationManager\RequestHelpers.cs" Line="261" Column="3" />
-      <File FileName="ServerConfigurationManager\downloadManager.htm" Line="1" Column="1" />
+      <File FileName="OpenNetProxySvc\MyClass.cs" Line="65" Column="32" />
+      <File FileName="OpenNetTestProgram\Program.cs" Line="82" Column="13" />
+      <File FileName="OpenNetTestProgram\OpenNetProtocolDriver.cs" Line="50" Column="19" />
+      <File FileName="VMLib\MyClass.cs" Line="88" Column="29" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True" selected="True">
+          <Node name="HttpServer" expanded="True">
+            <Node name="Filesystem" expanded="True" />
+          </Node>
+          <Node name="OpenNetProvider" expanded="True">
+            <Node name="References" expanded="True" />
+          </Node>
+          <Node name="OpenNetProxySvc" expanded="True">
+            <Node name="References" expanded="True" />
+          </Node>
+          <Node name="OpenNetTestProgram" expanded="True" />
+          <Node name="OpenServer" expanded="True" />
+          <Node name="ServerConfigurationManager" expanded="True">
+            <Node name="References" expanded="True" />
+          </Node>
+          <Node name="VMLib" expanded="True" />
+        </State>
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />

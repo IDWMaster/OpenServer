@@ -11,15 +11,18 @@ namespace IC80v3
 {
    public class IndexedFS
     {
-
+		
+		
         class ObservableStream : Stream
         {
             public ObservableStream(long fid, Filesystem msys)
             {
                 _msys = msys;
                 _fid = fid;
-                _basestream = new FStream(fid, msys);
-
+                lock (msys)
+                {
+                    _basestream = new FStream(fid, msys);
+                }
             }
             long _fid;
             public delegate void FileUpdateEventArgs(ObservableStream stream,long fpos, byte[] data);
@@ -34,6 +37,10 @@ namespace IC80v3
                 {
                     OnFileCommit.Invoke(this, Position, null);
 
+                }
+                lock (_msys)
+                {
+                    _basestream.Close();
                 }
                 base.Dispose(disposing);
             }
@@ -54,8 +61,11 @@ namespace IC80v3
 
             public override void Flush()
             {
-         
+				lock(_msys) {
+				_basestream.Flush();
+				}
             }
+				
 
             public override long Length
             {
@@ -119,7 +129,7 @@ namespace IC80v3
 
         Filesystem _msys;
 
-        public IEnumerable<string> Files
+        public List<string> Files
         {
             get
             {
@@ -134,7 +144,7 @@ namespace IC80v3
                 return rval;
             }
         }
-        public IEnumerable<string> Directories
+        public List<string> Directories
         {
             get
             {
@@ -165,48 +175,34 @@ namespace IC80v3
                 lock (_msys)
                 {
                     _msys.DeleteFile(filemappings[filename]);
-                    filemappings[filename] = -1;
+					lock(filemappings) {
+						
+                    filemappings.Remove(filename);
+					}
+					
                 }
             }
+			Commit();
         }
+		public long FreeSpace {
+		get {
+			lock(_msys) {
+				return _msys.FreeSpace;
+				}
+			}
+		}
         public void CreateFile(string filename)
         {
             lock (filemappings)
             {
                 if (filemappings.ContainsKey(filename))
                 {
-                    if (filemappings[filename] == -1)
-                    {
-                        
-                        lock (_msys)
-                        {
-                            while (_msys.HasFile(cval))
-                            {
-                                cval++;
-                            }
-                            if (_msys.HasFile(cval))
-                            {
-                                throw new IOException("File allocation error - Critical");
-                            }
-                            filemappings[filename] = cval;
-                            
-                            _msys.AllocSpace(cval, 16384);
-                            cval++;
-
-                        }
-                        return;
-                    }
-                    else
-                    {
                         throw new IOException("Allocation failed -- File already exists");
-                    }
+                    
                 }
                 else
                 {
-                    
-                    filemappings.Add(filename, cval);
-                }
-                lock (_msys)
+                    lock (_msys)
                 {
                     while (_msys.HasFile(cval))
                     {
@@ -218,6 +214,9 @@ namespace IC80v3
                     }
                     _msys.AllocSpace(cval, 16384);
                 }
+                    filemappings.Add(filename, cval);
+                }
+                
                     cval++;
             }
         }
@@ -225,9 +224,13 @@ namespace IC80v3
         {
             lock (dirmappings)
             {
-                dirmappings.Add(dirname, cval);
-                lock (_msys)
+				lock (_msys)
                 {
+					while(_msys.HasFile(cval)) {
+					cval++;
+					}
+                dirmappings.Add(dirname, cval);
+                
                     _msys.AllocSpace(cval, 16384);
                 }
                 cval++;
@@ -247,7 +250,7 @@ namespace IC80v3
                 {
                     lock (_msys)
                     {
-                        FStream bstr = new FStream(0, _msys);
+                        Stream bstr = new ObservableStream(0, _msys);
                         BinaryWriter mwriter = new BinaryWriter(bstr);
                         mwriter.Write(filemappings.Count+dirmappings.Count);
 
@@ -265,16 +268,26 @@ namespace IC80v3
 
                         }
                         _msys.Commit();
+						bstr.Close();
                     }
                 }
             }
+			if(parent !=null) {
+			parent.Commit();
+			}
         }
         public IndexedFS parent;
         Dictionary<string, long> filemappings = new Dictionary<string, long>();
         Dictionary<string, long> dirmappings = new Dictionary<string, long>();
-        public void Dispose()
+        void Destroy() {
+			lock(_msys) {
+		_msys.Dispose();
+			}
+		}
+		public void Dispose()
         {
-            _msys.Dispose();
+			Destroy();
+			GC.SuppressFinalize(this);
         }
         public IndexedFS(Filesystem msys)
         {
@@ -283,18 +296,19 @@ namespace IC80v3
             {
             //Create index
                 msys.AllocSpace(0,512);
-                FStream mstream = new FStream(0, msys);
+                Stream mstream = new ObservableStream(0, msys);
                 BinaryWriter mwriter = new BinaryWriter(mstream);
                 
                 mwriter.Write(filemappings.Count);
                 cval++;
             }
-            FStream fstr = new FStream(0, msys);
+            ObservableStream fstr = new ObservableStream(0, msys);
             BinaryReader mreader = new BinaryReader(fstr);
             int count = mreader.ReadInt32();
            
             for (int i = 0; i < count; i++)
             {
+				
                 if (mreader.ReadBoolean())
                 {
                     filemappings.Add(mreader.ReadString(), mreader.ReadInt64());
@@ -307,6 +321,8 @@ namespace IC80v3
                 
                 cval++;
             }
+			
         }
+		
     }
 }

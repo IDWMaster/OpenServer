@@ -8,13 +8,31 @@ namespace VMLib
 {
 	public class VMInstance:MarshalByRefObject {
 		public VMInstance() {
-		
+		AppDomain.CurrentDomain.AssemblyResolve+= HandleAppDomainCurrentDomainAssemblyResolve;
+		}
+
+		Assembly HandleAppDomainCurrentDomainAssemblyResolve (object sender, ResolveEventArgs args)
+		{
+			Console.WriteLine(args.Name);
+			string fname = args.Name.Substring(0,args.Name.IndexOf(","));
+			Console.WriteLine(Environment.CurrentDirectory+"\\"+dirname+"\\"+fname+".dll");
+			return Assembly.LoadFile(Environment.CurrentDirectory+"\\"+dirname+"\\"+fname+".dll");
+			
 		}
 		object VM;
+		string dirname;
 		public void StartApplication(byte[] asm, VMExecutionEngine engine) {
 		Assembly mbly = Assembly.Load(asm);
-			VM = mbly.GetExportedTypes()[0].GetConstructor(new Type[] {typeof(VMExecutionEngine)}).Invoke(new object[] {engine});
-		}
+			dirname = mbly.GetName().Name;
+			foreach(Type et in mbly.GetExportedTypes()) {
+			//VM = mbly.GetExportedTypes()[0].GetConstructor(new Type[] {typeof(VMExecutionEngine)}).Invoke(new object[] {engine});
+			if(et.GetConstructor(new Type[] {typeof(VMExecutionEngine)}) !=null) {
+				VM = et.GetConstructor(new Type[] {typeof(VMExecutionEngine)}).Invoke(new object[] {engine});
+				return;	
+				}
+			}
+			throw new Exception("Entry point not found!");
+			}
 		public void ntfyRequest(ClientWebRequest request) {
 		VM.GetType().GetMethod("onRequest").Invoke(VM,new object[] {request});
 			
@@ -22,7 +40,6 @@ namespace VMLib
 	}
 	public class VMExecutionEngine:MarshalByRefObject
 	{
-		
 		public Dictionary<string,string> mimetypes = new Dictionary<string, string>();
 		public VMExecutionEngine ()
 		{
@@ -78,6 +95,9 @@ namespace VMLib
 				return;
 			}
 				doRequest:
+				if(request.ProxyConnection) {
+			OpenNetProxySvc.ProxyHandler.ProcessRequest(request);
+			}else {
 				if(instances.ContainsKey(appname)) {
 				try {
 				    instances[appname].ntfyRequest(request);
@@ -120,9 +140,11 @@ namespace VMLib
 					Stream mstr = File.Open(Environment.CurrentDirectory+"\\"+appname+"\\"+appname+".dll",FileMode.Open);
 						byte[] buffer = new byte[mstr.Length];
 						mstr.Read(buffer,0,buffer.Length);
+					mstr.Close();
 						LoadApplication(buffer,appname);
 						goto doRequest;
 					}
+				}
 				}
 			byte[] mbuffer = new byte[16384];
 			int total = 0;
@@ -173,13 +195,17 @@ namespace VMLib
 		}
 		public void LoadApplication(byte[] assembly, string appName) {
 		AppDomain md = AppDomain.CreateDomain(appName);
+	
 			VMInstance app = md.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().FullName,"VMLib.VMInstance") as VMInstance;
 			app.StartApplication(assembly,this);
+			
 			lock(instances) {
 			instances.Add(appName,app);
 				domains.Add(appName,md);
 			}
 		}
+
+
 	}
 }
 

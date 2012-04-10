@@ -2,7 +2,9 @@
  * Originally created by Brian Bosak
  */
 //#define NO_CACHE
+//#define test
 #define SINGLE_THREADED
+//#define test
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -26,8 +28,16 @@ namespace IC80v3
                 return _reader.outputbuffer.Count * _reader.fragsize;
             }
         }
+		
         public static SeekableCryptoStream CreateUltraSecureStream(string pswd, int seglen, Stream btr)
         {
+#if test
+			Console.WriteLine("====================================");
+			Console.WriteLine("TEST ONLY -- DO NOT USE IN PRODUCTION");
+			Console.WriteLine("====================================");
+			
+#endif
+			
             SHA1 mt = new SHA1Managed();
             byte[] hash = mt.ComputeHash(Encoding.UTF8.GetBytes(pswd));
             List<char> tlist = new List<char>(pswd.ToCharArray());
@@ -85,9 +95,12 @@ namespace IC80v3
         public SeekableCryptoStream(SegmentReader reader)
         {
             _reader = reader;
-            byte[] lenbytes = reader.ReadSegment(0);
-            len = BitConverter.ToInt64(lenbytes, 0);
-
+			byte[] mb = new byte[sizeof(long)];
+            reader.rawRead(0,mb);
+            len = BitConverter.ToInt64(mb, 0);
+			if(len>reader.basestream.Length) {
+			len = 0;
+			}
         }
 
         public override bool CanRead
@@ -108,10 +121,7 @@ namespace IC80v3
         public override void Flush()
         {
             byte[] ival = BitConverter.GetBytes(len);
-            byte[] buffer = new byte[_reader.fragsize];
-            Buffer.BlockCopy(ival, 0, buffer, 0, ival.Length);
-            _reader.WriteSegment(0, buffer);
-            _reader.Flush();
+            _reader.rawWrite(0,ival);
         }
         long len = 0;
         public override long Length
@@ -143,7 +153,7 @@ namespace IC80v3
         {
             if (currentSegment == null)
             {
-                currentSegment = _reader.ReadSegment(FragmentID);
+                currentSegment = _reader.ReadSegment(FragmentID,this);
 
             }
             int data2read = count;
@@ -159,7 +169,7 @@ namespace IC80v3
                     dataRead += cdat;
                     data2read -= cdat;
 
-                    currentSegment = _reader.ReadSegment(FragmentID);
+                    currentSegment = _reader.ReadSegment(FragmentID,this);
                 }
                 else
                 {
@@ -207,7 +217,7 @@ namespace IC80v3
                 if (currentSegment == null)
                 {
                     //Read in current fragment
-                    currentSegment = _reader.ReadSegment(FragmentID);
+                    currentSegment = _reader.ReadSegment(FragmentID,this);
 
                 }
                 int dataread;
@@ -232,19 +242,20 @@ namespace IC80v3
                 {
                     currentSegment = null;
                 }
+
+            }
+			
                 if (cpos > len)
                 {
                     len = cpos;
                 }
-
-            }
         }
     }
     public class SegmentReader:IDisposable
     {
-        Stream basestream;
+        internal Stream basestream;
         public int fragsize;
-        ICryptoTransform writer;
+       
         ICryptoTransform reader;
         Stream pwriter;
         Stream preader;
@@ -258,15 +269,12 @@ namespace IC80v3
             basestream = _bsstr;
             fragsize = _fragsize;
             reader = rdale.CreateDecryptor();
-            writer = rdale.CreateEncryptor();
-#if !SINGLE_THREADED
-            mthread = new System.Threading.Thread(thetar);
-            mthread.Start();
-#endif
+          
         }
         public static bool testmode = false;
         void TransformMultiByte(byte[] input, byte[] output, ICryptoTransform transform)
         {
+#if !test
             if (input.Length != output.Length)
             {
                 throw new Exception("Input and output size must match");
@@ -277,82 +285,28 @@ namespace IC80v3
                 return;
             }
             int ib = transform.InputBlockSize;
-            if (transform.CanTransformMultipleBlocks)
+			
+            if (true)
             {
                 transform.TransformBlock(input, 0, output.Length, output, 0);
             }else {
                 for (int i = 0; i < output.Length; i += ib)
                 {
-                    transform.TransformBlock(input, i, ib, output, i);
+					transform.TransformBlock(input, i, ib, output, i);
                 }
             }
+#else
+			output = input;
+#endif
         }
-#if !SINGLE_THREADED
-        void thetar()
+
+        ManualResetEvent mvent = new ManualResetEvent(false);
+        /// <summary>
+        /// Controlled by buffering system. Does nothing
+        /// </summary>
+		public void Flush()
         {
             
-                while (isrunning || outputbuffer.Count>0)
-                {
-#if !NO_CACHE
-                    while (cachedsegments.Count > MaxCacheSyze)
-                    {
-                        lock (cachedsegments)
-                        {
-                        var enumer = cachedsegments.GetEnumerator();
-                        enumer.MoveNext();
-                        enumer.Dispose();
-                        
-                            cachedsegments.Remove(enumer.Current.Key);
-                        }
-
-                    }
-#endif
-                    if (outputbuffer.Count < 1 & isrunning)
-                    {
-                        mvent.Reset();
-                        mvent.WaitOne();
-                    }
-                    if (!isrunning & outputbuffer.Count == 0)
-                    {
-                        break;
-                    }
-                    byte[] data;
-                    int segID;
-
-                    lock (outputbuffer)
-                    {
-                        data = outputbuffer[0].data;
-                        segID = outputbuffer[0].segID;
-                        outputbuffer.RemoveAt(0);
-                    }
-                   
-                    //Seek to segpos
-                    
-                    byte[] buffer = new byte[data.Length + boff];
-                    Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
-                    lock (basestream)
-                    {
-                        basestream.Position = segID * (fragsize + boff);
-                        if (_test)
-                        {
-                            pwriter = basestream;
-                        }
-                     
-                        byte[] output = new byte[buffer.Length];
-                        writer = _rdale.CreateEncryptor();
-                        TransformMultiByte(buffer, output, writer);
-                        basestream.Write(output, 0, output.Length);
-                    }
-                }
-                basestream.Flush();
-            basestream.Close();
-            threadtermevent.Set();
-        }
-#endif
-        ManualResetEvent mvent = new ManualResetEvent(false);
-        public void Flush()
-        {
-            basestream.Flush();
         }
         const int boff = 32;
         Random mrand = new Random();
@@ -362,7 +316,14 @@ namespace IC80v3
             public int segID;
         
         }
+		object syncObj = new object();
+		public int pendingOperations = 0;
+		ManualResetEvent completeNtfy = new ManualResetEvent(false);
         public List<buffercontainer> outputbuffer = new List<buffercontainer>();
+		bool needsReset = false;
+		Dictionary<int,byte[]> pendingSegments = new Dictionary<int, byte[]>();
+		Dictionary<Thread,ICryptoTransform> transforms = new Dictionary<Thread, ICryptoTransform>();
+		ManualResetEvent cment = new ManualResetEvent(false);
         public void WriteSegment(int segID, byte[] data)
         {
             
@@ -371,71 +332,146 @@ namespace IC80v3
                 throw new InvalidOperationException("Crypto driver has been deactivated. Unable to write data to device.");
             }
 #if !NO_CACHE
+	
+		mpt:
+					bool cts = false;
+			lock(pendingSegments) {
+			if(pendingSegments.ContainsKey(segID)) {
+					cment.Reset();
+					
+					cts = true;
+					
+				}else {
+					pendingSegments.Add(segID,data);
+					
+				}
+			}
+			if(cts) {
+			
+			cment.WaitOne();
+			goto mpt;	
+			}
+			lock (cachedsegments)
+                {
             if (cachedsegments.ContainsKey(segID))
             {
-                lock (cachedsegments)
-                {
+                
                     cachedsegments[segID] = data;
-                }
+                
             }
+			
             else
             {
-                lock (cachedsegments)
-                {
+               
                     cachedsegments.Add(segID, data);
-                }
+                
             }
+			}
 #endif
-#if !SINGLE_THREADED
-            lock (outputbuffer)
-            {
-                bool tt = false;
-                buffercontainer retainer = new buffercontainer();
-                retainer.data = data;
-                retainer.segID = segID;
-                foreach (buffercontainer et in outputbuffer)
-                {
-                    if (et.segID == segID)
-                    {
-                        et.data = data;
-                        tt = true;
-                    }
-                }
-                if (!tt)
-                {
-                    
-                    outputbuffer.Add(retainer);
-                }
-            }
-#else
+
             //Seek to segpos
 
             byte[] buffer = new byte[data.Length + boff];
             Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
-            lock (basestream)
-            {
-                basestream.Position = segID * (fragsize + boff);
+          lock(syncObj) {
+				if(needsReset) {
+				completeNtfy.Reset();
+					needsReset = false;
+				}
+			pendingOperations++;
+			}
+			
+			
+			thetar (new object[] {buffer,segID});
+			//THIS DOESN'T
+			//	System.Threading.ThreadPool.QueueUserWorkItem(thetar,new object[] {buffer,segID});
+            //END EXPERIMENT
+            mvent.Set();
+            
+        }
+		void thetar(object sender) {
+			object[] data = sender as object[];
+			byte[] buffer = data[0] as byte[];
+			int segID = (int)data[1];
+				ICryptoTransform writer = null;
+				Thread currentThread = Thread.CurrentThread;  
+			lock(transforms) {
+				if(!transforms.ContainsKey(currentThread)) {
+				transforms.Add(currentThread,_rdale.CreateEncryptor());
+				}
+				writer = transforms[currentThread];
+			}
                 if (_test)
                 {
                     pwriter = basestream;
                 }
 
                 byte[] output = new byte[buffer.Length];
+			
+				if(writer == null) {
+				lock(syncObj) {
                 writer = _rdale.CreateEncryptor();
+				}
+				}else {
+				(writer as System.Security.Cryptography.RijndaelManagedTransform).Reset();
+			
+				
+			}
                 TransformMultiByte(buffer, output, writer);
+				
+				lock (basestream)
+				{
+					 basestream.Position = segID * (fragsize + boff);
                 basestream.Write(output, 0, output.Length);
-            }
-#endif
-            mvent.Set();
-            
-        }
+			}
+			lock(pendingSegments) {
+				pendingSegments.Remove(segID);
+				}
+				lock(syncObj) {
+				pendingOperations--;
+				cment.Set();
+					if(pendingOperations == 0) {
+					
+					completeNtfy.Set();
+						needsReset = true;
+					
+					
+					}
+				}
+				
+		}
 #if !NO_CACHE
         Dictionary<int, byte[]> cachedsegments = new Dictionary<int, byte[]>();
 #endif
         public static int MaxCacheSyze = 15;
-        public byte[] ReadSegment(int segID)
+		public void rawWrite(long position, byte[] data) {
+		lock(basestream) {
+			basestream.Position = position;
+			basestream.Write(data,0,data.Length);
+				basestream.Flush();
+			}
+			
+		}
+		public int rawRead(long position, byte[] data) {
+		lock(basestream) {
+			basestream.Position = 0;
+				return basestream.Read(data,0,data.Length);
+			}
+		}
+        public byte[] ReadSegment(int segID, Stream s)
         {
+			if(segID>0) {
+			if((segID) * (fragsize + boff)>=basestream.Length) {
+					return new byte[fragsize];
+				}
+			}
+			lock(pendingSegments) {
+			if(pendingSegments.ContainsKey(segID)) {
+				return pendingSegments[segID];
+				}
+			}
 #if !NO_CACHE
+			
             lock (cachedsegments)
             {
                 if (cachedsegments.ContainsKey(segID))
@@ -445,6 +481,7 @@ namespace IC80v3
                 }
             }
 #endif
+		
             lock (basestream)
             {
 #if !NO_CACHE
@@ -517,18 +554,22 @@ namespace IC80v3
                 }
             }
         }
-        System.Threading.Thread mthread;
         bool isrunning = true;
         ManualResetEvent threadtermevent = new ManualResetEvent(false);
-        public void Dispose()
-        {
-#if !SINGLE_THREADED
-            isrunning = false;
-            mvent.Set();
-            threadtermevent.WaitOne();
-#else
+        void Destroy() {
+		if(pendingOperations>0) {
+			Console.WriteLine("Waiting for IO flush");
+				completeNtfy.WaitOne();
+				
+				Console.WriteLine("IO flush complete");
+			}
+			basestream.Flush();
             basestream.Close();
-#endif
+		}
+		public void Dispose()
+        {
+			GC.SuppressFinalize(this);
+			Destroy();
         }
     }
 }

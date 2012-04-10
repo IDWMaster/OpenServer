@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="OpenServer">
+</Property><Property Name="Solution File" Value="C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer.sln">
+</Property><Property Name="Date" Value="Friday, March 30, 2012">
+</Property><Property Name="Time" Value="11:25 AM">
+</Property></Properties><Event ErrorLevel="0" Project="OpenServer" Source="OpenServer\OpenServer.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="OpenServer" Source="OpenServer\OpenServer.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="HttpServer" Source="HttpServer\HttpServer.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="HttpServer" Source="HttpServer\HttpServer.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="VMLib" Source="VMLib\VMLib.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="VMLib" Source="VMLib\VMLib.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="ServerConfigurationManager" Source="ServerConfigurationManager\ServerConfigurationManager.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="ServerConfigurationManager" Source="ServerConfigurationManager\ServerConfigurationManager.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="DOSTester" Source="DOSTester\DOSTester.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="DOSTester" Source="DOSTester\DOSTester.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="IC80FSTester" Source="IC80FSTester\IC80FSTester.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="IC80FSTester" Source="IC80FSTester\IC80FSTester.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="OpenNetProvider" Source="OpenNetProvider\OpenNetProvider.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="OpenNetProvider" Source="OpenNetProvider\OpenNetProvider.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="OpenServer.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="OpenServer.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="OpenServer" Source="OpenServer\OpenServer.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="HttpServer" Source="HttpServer\HttpServer.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="VMLib" Source="VMLib\VMLib.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="ServerConfigurationManager" Source="ServerConfigurationManager\ServerConfigurationManager.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="DOSTester" Source="DOSTester\DOSTester.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="IC80FSTester" Source="IC80FSTester\IC80FSTester.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event><Event ErrorLevel="0" Project="OpenNetProvider" Source="OpenNetProvider\OpenNetProvider.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>

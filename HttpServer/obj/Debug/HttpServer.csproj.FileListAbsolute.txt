@@ -3,3 +3,8 @@ D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\Htt
 D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\HttpServer.pdb
 D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.dll
 D:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\HttpServer.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\bin\Debug\HttpServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\HttpServer\obj\Debug\HttpServer.pdb

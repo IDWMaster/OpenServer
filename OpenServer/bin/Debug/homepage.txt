@@ -1,1 +1,0 @@
-ServerConfigurationManager/index.htm

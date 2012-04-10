@@ -1,0 +1,12 @@
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\WEB\OpenSocial\IDWOS.js
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\WEB\OpenSocial\index.htm
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\WEB\OpenSocial\profile.html
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\OpenServer.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\OpenServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\HttpServer.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\VMLib.dll
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\HttpServer.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\bin\Debug\VMLib.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\obj\x86\Debug\OpenServer.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\obj\x86\Debug\OpenServer.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\OpenServer\obj\x86\Debug\OpenServer.pdb

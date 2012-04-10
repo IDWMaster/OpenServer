@@ -1,0 +1,5 @@
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\DOSTester\bin\Debug\DOSTester.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\DOSTester\bin\Debug\DOSTester.pdb
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\DOSTester\obj\x86\Debug\DOSTester.csprojResolveAssemblyReference.cache
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\DOSTester\obj\x86\Debug\DOSTester.exe
+C:\Users\Brian Bosak\Desktop\SCHOOL computer\OpenServer\DOSTester\obj\x86\Debug\DOSTester.pdb
